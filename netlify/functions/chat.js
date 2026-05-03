@@ -1,8 +1,20 @@
-import Groq from "groq-sdk";
+const Groq = require("groq-sdk");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: "",
+    };
+  }
+
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
@@ -23,10 +35,11 @@ export const handler = async (event) => {
       body: JSON.stringify({ reply: completion.choices[0].message.content }),
     };
   } catch (err) {
+    console.error(err);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "Failed to get response." }),
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };
